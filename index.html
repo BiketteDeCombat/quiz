@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz Abréviations Médicales</title>
+  <style>
+    body { font-family: "Segoe UI", Arial, sans-serif; background:#f4f7fa; margin:0; padding:20px; color:#333; }
+    h1 { text-align:center; color:#2c3e50; margin-bottom:30px; }
+    .question { background:#fff; border-radius:8px; padding:20px; margin-bottom:15px; box-shadow:0 2px 6px rgba(0,0,0,0.1); }
+    input[type="text"] { width:70%; padding:8px; border:1px solid #ccc; border-radius:6px; margin-right:10px; }
+    button { background:#3498db; color:#fff; border:none; padding:8px 14px; border-radius:6px; cursor:pointer; }
+    button:hover { background:#2980b9; }
+    .feedback { margin-top:10px; padding:10px; border-radius:6px; font-weight:bold; max-width: 70%; }
+    .correct { background:#eafaf1; color:#27ae60; border:1px solid #27ae60; }
+    .wrong { background:#fdecea; color:#e74c3c; border:1px solid #e74c3c; }
+    #score { text-align:center; font-size:20px; margin-top:20px; font-weight:bold; color:#2c3e50; }
+    /* Fenêtre modale */
+    .modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); }
+    .modal-content { background:#fff; margin:10% auto; padding:20px; border-radius:8px; width:60%; box-shadow:0 2px 10px rgba(0,0,0,0.3); }
+    .close { float:right; font-size:20px; cursor:pointer; color:#e74c3c; }
+  </style>
+</head>
+<body>
+  <h1>Quiz Abréviations Médicales</h1>
+  <div id="quiz"></div>
+  <div id="score">Score : 0</div>
+
+  <!-- Fenêtre modale -->
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <span class="close" onclick="closeModal()">&times;</span>
+      <h2 id="infoTitle"></h2>
+      <p id="infoText"></p>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      ["AA", "Auxiliaire Ambulancier"],
+      ["A.C.R/A.C.V", "Arrêt Cardio-Respiratoire / ou Ventilatoire"],
+      ["A.E.S", "Accident d'Exposition au Sang"],
+      ["A.F.G.S.U", "Attestation de Formation Aux Geste et Soins d'Urgences"],
+      ["Antisepsie", "Méthode qui consiste à détruire les germes sur la peau"],
+      ["Antiseptique", "Produits qui empêche la multiplications de germes et les détruits"],
+      ["A.M.S", "Autorisation de Mise en Service du véhicule"],
+      ["A.R.M", "Assistant de Régulation Médicale"],
+      ["A.R.S", "Agence Régionale de Santé"],
+      ["Artère", "Vaisseau qui transporte le sang vers les capillaires"],
+      ["Articulation", "Enssemble des éléments par lesquel deux os s'unissent entre eux"],
+      ["A.S.S.U", "Ambulance de Soin et de Secours d'Urgence"],
+      ["A.V.C", "Accident Vasculaire Cérébral"],
+      ["A.V.P", "Accident de la Voie Pulique"],
+      ["B.A.V.U", "Ballon Auto-Remplisseur à Valve Unidirectionnelles"],
+      ["B.S.P.P", "Brigade des Sapeurs-Pompiers de Paris"],
+      ["C.C.C", "Col, Cravate, Ceinture"],
+      ["C.C.A", "Certificat de Capacité d'Ambulancier"],
+      ["C.E.S.U", "Centre d'Ensseignement de Soin d'Urgence"],
+      ["C.H.U", "Centre Hospitalier Universitaire"],
+      ["C.H.U (matériel)", "Coussin Hémostatique d'Urgence"],
+      ["C.R.R.A", "Centre de Réception et de Régulation des Appels"],
+      ["C.U.M.P", "Cellule d'Urgence Médico-Psychologique"],
+      ["D.A.E", "Défibrilateur Automatique Externe"],
+      ["D.A.O.M", "Déchets d'Activités de Soins Assimilable aux Ordures Ménagères"],
+      ["D.A.S.R.I", "Déchets d'Activités de Soins à Risques Infectieux"],
+      ["D.D.S.H", "Détergent. Désinfectant. Surfaces Hautes"],
+      ["D.E.A", "Diplôme d'Etat Ambulancier"],
+      ["D.S.A", "Défibrillateur Semi-Automatique"],
+      ["D.S.M", "Directeur des Secours Médicaux"],
+      ["E.P.I", "Equipement de Protection Individuel"],
+      ["I.A.S", "Infection Associée aux Soins"],
+      ["I.R.C (ventilatoire)", "Insuffisance Réspiratoire Chronique"],
+      ["I.R.C", "Insuffisance Rénal Chronique"],
+      ["L.V.A", "Libération des voies Aériennes"],
+      ["M.C.E", "Massage Cardiaque externe"],
+      ["N.R.B.C", "Nucléaire Radiologique Biologique Chimique"],
+      ["O.R.S.E.C", "Organisation de la Réponse de la SEcurité Civile"],
+      ["P.A", "Préssion Artérielle"],
+      ["P.C", "Perte de Connaissance"],
+      ["P.C.I", "Perte de Connaissance Initiale"],
+      ["P.L.S", "Position Latéral de Sécurité"],
+      ["P.M.A", "Poste Médicale Avancé"],
+      ["P.M.T", "Préscription Médicale de Transport"],
+      ["P.T.H", "Prothèse Totale de Hanche"],
+      ["R.C.P", "Ranimation Cardio-Pulmonaire"],
+      ["S.A.M.U", "Service d'Aide Médical d'Urgence"],
+      ["S.A.U", "Service d'Acceuil des Urgences"],
+      ["S.D.I.S", "Service Départementale d'Incendie et de Secours"],
+      ["S.M.U.R", "Service Mobile d'Urgence et de Réanimation"],
+      ["S.P", "Sapeur-Pompier"],
+      ["S.S.T", "Sauveteur Secouriste du Travail"],
+      ["T.C", "Traumatisme Crânien"],
+      ["T.S", "Tentative de Suicide"],
+      ["U.A", "Urgence Absolue"],
+      ["U.M.H", "Unité Mobile Hospitalière"],
+      ["U.R", "Urgence Relative"],
+      ["U.S.I.C", "Unité De Soins Intensifs Cardiaque"],
+      ["V.A", "Ventilation Artificielle"],
+      ["V.A.S", "Voies Aériennes Supérieures"],
+      ["V.S.A.V", "Véhicule de Secours et D'assistance aux victimes"],
+      ["V.S.L", "Végicule Sanitaire Léger"]
+    ];
+
+    // Fiches explicatives 
+    const infos = {
+      "AA": "Auxiliaire Ambulancier : assiste l’ambulancier diplômé d’État. Conduit le véhicule, installe le patient, assure l’entretien et participe aux gestes de premiers secours.",
+  "A.C.R/A.C.V": "Arrêt Cardio-Respiratoire / Ventilatoire : arrêt du cœur ou de la respiration. Urgence vitale nécessitant RCP et défibrillation.",
+  "A.E.S": "Accident d’Exposition au Sang : exposition accidentelle au sang ou liquides biologiques. Risque infectieux (VIH, hépatites).",
+  "A.F.G.S.U": "Attestation de Formation aux Gestes et Soins d’Urgence : certification obligatoire pour les soignants, enseigne les gestes de secours et la gestion des urgences.",
+  "Antisepsie": "Méthode visant à détruire ou réduire les germes sur la peau ou les tissus vivants avant un geste invasif.",
+  "Antiseptique": "Produit chimique utilisé pour l’antisepsie (alcool, bétadine, chlorhexidine). Empêche la multiplication des germes et les détruit.",
+  "A.M.S": "Autorisation de Mise en Service : document administratif certifiant qu’un véhicule sanitaire est conforme et utilisable.",
+  "A.R.M": "Assistant de Régulation Médicale : reçoit les appels au SAMU, recueille les infos et transmet au médecin régulateur.",
+  "A.R.S": "Agence Régionale de Santé : organisme public chargé de la politique de santé dans une région.",
+  "Artère": "Vaisseau sanguin qui transporte le sang du cœur vers les organes et capillaires.",
+  "Articulation": "Structures (os, ligaments, cartilage) permettant la jonction et la mobilité entre deux os.",
+  "A.S.S.U": "Ambulance de Soins et de Secours d’Urgence : véhicule sanitaire équipé pour les interventions urgentes.",
+  "A.V.C": "Accident Vasculaire Cérébral : interruption de la circulation sanguine dans le cerveau. Causes : thrombose, hémorragie.",
+  "A.V.P": "Accident de la Voie Publique : accident survenu sur la route impliquant véhicules et/ou piétons.",
+  "B.A.V.U": "Ballon Auto-Remplisseur à Valve Unidirectionnelle : matériel de ventilation manuelle utilisé en réanimation.",
+  "B.S.P.P": "Brigade des Sapeurs-Pompiers de Paris : corps militaire chargé des secours incendie et médicaux dans Paris.",
+  "C.C.C": "Col, Cravate, Ceinture : méthode mnémotechnique pour vérifier la liberté des voies aériennes.",
+  "C.C.A": "Certificat de Capacité d’Ambulancier : ancien diplôme remplacé par le DEA.",
+  "C.E.S.U": "Centre d’Enseignement des Soins d’Urgence : organisme qui dispense les formations en secourisme et soins d’urgence.",
+  "C.H.U": "Centre Hospitalier Universitaire : hôpital associé à une faculté de médecine, assure soins, enseignement et recherche.",
+  "C.H.U (matériel)": "Coussin Hémostatique d’Urgence : dispositif médical utilisé pour comprimer une plaie et stopper une hémorragie.",
+  "C.R.R.A": "Centre de Réception et de Régulation des Appels : structure qui reçoit les appels d’urgence (SAMU, pompiers).",
+  "C.U.M.P": "Cellule d’Urgence Médico-Psychologique : équipe spécialisée dans la prise en charge psychologique des victimes.",
+  "D.A.E": "Défibrillateur Automatique Externe : appareil qui analyse le rythme cardiaque et délivre un choc électrique si nécessaire.",
+  "D.A.O.M": "Déchets Assimilables aux Ordures Ménagères : déchets non dangereux issus des soins.",
+  "D.A.S.R.I": "Déchets d’Activités de Soins à Risques Infectieux : déchets contaminés (seringues, pansements souillés).",
+  "D.D.S.H": "Détergent Désinfectant Surfaces Hautes : produit utilisé pour nettoyer et désinfecter les surfaces.",
+  "D.E.A": "Diplôme d’État d’Ambulancier : diplôme officiel pour exercer comme ambulancier.",
+  "D.S.A": "Défibrillateur Semi-Automatique : appareil qui demande une action humaine pour délivrer le choc.",
+  "D.S.M": "Directeur des Secours Médicaux : responsable de la coordination médicale lors d’un dispositif de secours.",
+  "E.P.I": "Équipement de Protection Individuel : matériel destiné à protéger le secouriste (gants, masque, lunettes).",
+  "I.A.S": "Infection Associée aux Soins : infection contractée lors d’une hospitalisation ou d’un soin médical.",
+  "I.R.C (ventilatoire)": "Insuffisance Respiratoire Chronique : incapacité durable des poumons à assurer les échanges gazeux.",
+  "I.R.C": "Insuffisance Rénale Chronique : perte progressive et irréversible de la fonction des reins.",
+  "L.V.A": "Libération des Voies Aériennes : geste de secours pour dégager les voies respiratoires.",
+  "M.C.E": "Massage Cardiaque Externe : compression thoracique pour maintenir la circulation sanguine en cas d’arrêt cardiaque.",
+  "N.R.B.C": "Nucléaire Radiologique Biologique Chimique : risques liés aux agents nucléaires, radiologiques, biologiques ou chimiques.",
+  "O.R.S.E.C": "Organisation de la Réponse de la Sécurité Civile : plan national de gestion des catastrophes.",
+  "P.A": "Pression Artérielle : mesure de la force exercée par le sang sur les parois des artères.",
+  "P.C": "Perte de Connaissance : état d’inconscience temporaire ou prolongée.",
+  "P.C.I": "Perte de Connaissance Initiale : inconscience constatée dès le premier contact avec la victime.",
+  "P.L.S": "Position Latérale de Sécurité : position de secours pour maintenir les voies aériennes libres chez une victime inconsciente.",
+  "P.M.A": "Poste Médical Avancé : structure médicale déployée sur le terrain lors d’événements majeurs.",
+  "P.M.T": "Prescription Médicale de Transport : document médical autorisant un transport sanitaire.",
+  "P.T.H": "Prothèse Totale de Hanche : dispositif chirurgical remplaçant l’articulation de la hanche.",
+  "R.C.P": "Réanimation Cardio-Pulmonaire : association du massage cardiaque et de la ventilation artificielle.",
+  "S.A.M.U": "Service d’Aide Médicale Urgente : service hospitalier chargé de la régulation médicale et de l’envoi des secours.",
+  "S.A.U": "Service d’Accueil des Urgences : service hospitalier qui reçoit les patients en urgence.",
+  "S.D.I.S": "Service Départemental d’Incendie et de Secours : organisation des pompiers au niveau départemental.",
+  "S.M.U.R": "Service Mobile d’Urgence et de Réanimation : équipe médicale mobile intervenant sur le terrain.",
+  "S.P": "Sapeur-Pompier : professionnel ou volontaire chargé des missions de secours et de lutte contre l’incendie.",
+  "S.S.T": "Sauveteur Secouriste du Travail : salarié formé aux gestes de premiers secours en entreprise.",
+  "T.C": "Traumatisme Crânien : lésion du crâne ou du cerveau suite à un choc.",
+  "T.S": "Tentative de Suicide : acte volontaire visant à mettre fin à ses jours.",
+  "U.A": "Urgence Absolue : situation vitale nécessitant une prise en charge immédiate.",
+  "U.M.H": "Unité Mobile Hospitalière : véhicule médicalisé permettant des soins intensifs sur le terrain.",
+  "U.R": "Urgence Relative : urgence nécessitant une prise en charge rapide mais non vitale.",
+  "U.S.I.C": "Unité de Soins Intensifs Cardiaques : service hospitalier spécialisé dans les pathologies cardiaques graves.",
+  "V.A": "Ventilation Artificielle : assistance mécanique ou manuelle à la respiration.",
+  "V.A.S": "Voies Aériennes Supérieures : ensemble des structures respiratoires (nez, bouche, pharynx, larynx).",
+  "V.S.A.V": "Véhicule de Secours et d’Assistance aux Victimes : véhicule des pompiers pour le transport des victimes.",
+  "V.S.L": "Véhicule Sanitaire Léger : véhicule destiné au transport assis des patients."
+      
+    };
+
+    let score = 0;
+
+    const quizDiv = document.getElementById("quiz");
+
+    questions.forEach((q, index) => {
+      const div = document.createElement("div");
+      div.className = "question";
+      div.innerHTML = `
+        <p>${index+1}. Que veut dire <b>${q[0]}</b> ?</p>
+        <input type="text" id="q${index}" placeholder="Votre réponse">
+        <button onclick="checkAnswer(${index})">Valider</button>
+        <div id="result-q${index}" class="feedback"></div>
+      `;
+      quizDiv.appendChild(div);
+    });
+	// Fonction de normalisation pour rendre la comparaison plus souple
+function normalize(str) {
+  return str
+    .toLowerCase()
+    .normalize("NFD") // décompose les caractères accentués
+    .replace(/[\u0300-\u036f]/g, "") // supprime les accents
+    .trim();
+}
+
+function checkAnswer(index) {
+  const inputId = "q" + index;
+  const userAnswer = document.getElementById(inputId).value.trim();
+  const correctAnswer = questions[index][1];
+  const resultDiv = document.getElementById("result-" + inputId);
+
+  if (resultDiv.textContent) return; // éviter double comptage
+
+  // Vérification souple : si la réponse utilisateur est incluse dans la bonne réponse
+  if (
+    normalize(correctAnswer).includes(normalize(userAnswer)) &&
+    userAnswer.length > 0
+  ) {
+    resultDiv.textContent = "✔ Correct";
+    resultDiv.className = "feedback correct";
+    score++;
+  } else {
+    resultDiv.innerHTML = `✘ Faux (réponse attendue : ${questions[index][1]}) 
+      <button onclick="showInfo('${questions[index][0]}')">Info</button>`;
+    resultDiv.className = "feedback wrong";
+  }
+
+  document.getElementById("score").textContent = "Score : " + score;
+}
+
+    function showInfo(abbr) {
+      document.getElementById("infoTitle").textContent = abbr;
+      document.getElementById("infoText").textContent = infos[abbr] || "Pas d'information disponible.";
+      document.getElementById("infoModal").style.display = "block";
+    }
+
+    function closeModal() {
+      document.getElementById("infoModal").style.display = "none";
+    }
+  </script>
+</body>
+</html>
